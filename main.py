@@ -7,11 +7,11 @@ GRAVITY = 0.35
 JUMP_SPEED = -2.0
 
 
-def draw_game(bird_y, pipe_xs, pipe_gaps):
+def draw_game(bird_y, pipe_xs, pipe_gaps, pipe_count):
     basic.clear_screen()
 
     # Draw the top and bottom parts of each pipe, leaving a two-LED gap.
-    for i in range(len(pipe_xs)):
+    for i in range(pipe_count):
         x = pipe_xs[i]
         gap_top = pipe_gaps[i]
         for y in range(5):
@@ -32,6 +32,7 @@ def play_game():
     velocity = 0.0
     pipe_xs = []
     pipe_gaps = []
+    pipe_count = 0
     score = 0
     frames = 0
     previous_b = False
@@ -53,7 +54,8 @@ def play_game():
         # Move existing pipes one LED to the left.
         remaining_xs = []
         remaining_gaps = []
-        for i in range(len(pipe_xs)):
+        remaining_count = 0
+        for i in range(pipe_count):
             x = pipe_xs[i] - 1
             gap_top = pipe_gaps[i]
 
@@ -66,17 +68,20 @@ def play_game():
             if x >= 0:
                 remaining_xs.append(x)
                 remaining_gaps.append(gap_top)
+                remaining_count += 1
         pipe_xs = remaining_xs
         pipe_gaps = remaining_gaps
+        pipe_count = remaining_count
 
         # Add a new pipe from the right every six ticks.
         frames += 1
         if frames % 6 == 0:
             pipe_xs.append(4)
             pipe_gaps.append(Math.random_range(1, 2))
+            pipe_count += 1
 
         if not crashed:
-            draw_game(bird_row, pipe_xs, pipe_gaps)
+            draw_game(bird_row, pipe_xs, pipe_gaps, pipe_count)
             basic.pause(TICK_MS)
 
     # Show the final score, then accept a logo touch during the five-second
