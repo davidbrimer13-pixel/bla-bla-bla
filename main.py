@@ -1,10 +1,9 @@
 # Flappy Bird for the micro:bit (MakeCode Python)
-# Press A to start, B to flap, and touch the logo to restart after a crash.
+# Press A to start, B to move up one LED, and touch the logo to restart.
 
 BIRD_X = 1
 TICK_MS = 220
-GRAVITY = 0.18
-JUMP_SPEED = -1.2
+GRAVITY_MS = 1000
 
 
 def draw_game(bird_y, pipe_x, gap_top):
@@ -26,36 +25,34 @@ def wait_for_logo_release():
 
 
 def play_game():
-    bird_y = 2.0
-    velocity = 0.0
+    bird_y = 2
     pipe_x = -1
     gap_top = 1
     score = 0
     frames = 0
+    gravity_elapsed = 0
     previous_b = False
     crashed = False
 
     while not crashed:
         b_now = input.button_is_pressed(Button.B)
         if b_now and not previous_b:
-            velocity = JUMP_SPEED
+            # Each new B press moves the bird up exactly one LED.
+            if bird_y > 0:
+                bird_y -= 1
         previous_b = b_now
 
-        # Apply gentler gravity and clamp the bird to the display edges.
-        velocity += GRAVITY
-        bird_y += velocity
-        if bird_y < 0:
-            bird_y = 0
-            velocity = 0
-        elif bird_y > 4:
-            bird_y = 4
-            velocity = 0
-        bird_row = int(bird_y)
+        # Gravity moves the bird down exactly one LED per second.
+        gravity_elapsed += TICK_MS
+        if gravity_elapsed >= GRAVITY_MS:
+            gravity_elapsed -= GRAVITY_MS
+            if bird_y < 4:
+                bird_y += 1
 
         # Move the current pipe one LED to the left.
         if pipe_x >= 0:
             pipe_x -= 1
-            if pipe_x == BIRD_X and not (gap_top <= bird_row <= gap_top + 1):
+            if pipe_x == BIRD_X and not (gap_top <= bird_y <= gap_top + 1):
                 crashed = True
             if pipe_x == BIRD_X - 1:
                 score += 1
@@ -67,7 +64,7 @@ def play_game():
             gap_top = Math.random_range(1, 2)
 
         if not crashed:
-            draw_game(bird_row, pipe_x, gap_top)
+            draw_game(bird_y, pipe_x, gap_top)
             basic.pause(TICK_MS)
 
     # Show the final score, then accept a logo touch during the five-second
