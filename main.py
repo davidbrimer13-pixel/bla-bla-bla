@@ -7,16 +7,14 @@ GRAVITY = 0.35
 JUMP_SPEED = -2.0
 
 
-def draw_game(bird_y, pipe_xs, pipe_gaps, pipe_count):
+def draw_game(bird_y, pipe_x, gap_top):
     basic.clear_screen()
 
-    # Draw the top and bottom parts of each pipe, leaving a two-LED gap.
-    for i in range(pipe_count):
-        x = pipe_xs[i]
-        gap_top = pipe_gaps[i]
+    # Draw the top and bottom parts of the pipe, leaving a two-LED gap.
+    if pipe_x >= 0:
         for y in range(5):
             if y < gap_top or y > gap_top + 1:
-                led.plot(x, y)
+                led.plot(pipe_x, y)
 
     led.plot(BIRD_X, bird_y)
 
@@ -30,9 +28,8 @@ def wait_for_logo_release():
 def play_game():
     bird_y = 2.0
     velocity = 0.0
-    pipe_xs = []
-    pipe_gaps = []
-    pipe_count = 0
+    pipe_x = -1
+    gap_top = 1
     score = 0
     frames = 0
     previous_b = False
@@ -51,37 +48,22 @@ def play_game():
         if bird_row < 0 or bird_row > 4:
             crashed = True
 
-        # Move existing pipes one LED to the left.
-        remaining_xs = []
-        remaining_gaps = []
-        remaining_count = 0
-        for i in range(pipe_count):
-            x = pipe_xs[i] - 1
-            gap_top = pipe_gaps[i]
-
-            if x == BIRD_X and not (gap_top <= bird_row <= gap_top + 1):
+        # Move the current pipe one LED to the left.
+        if pipe_x >= 0:
+            pipe_x -= 1
+            if pipe_x == BIRD_X and not (gap_top <= bird_row <= gap_top + 1):
                 crashed = True
-
-            if x == BIRD_X - 1:
+            if pipe_x == BIRD_X - 1:
                 score += 1
 
-            if x >= 0:
-                remaining_xs.append(x)
-                remaining_gaps.append(gap_top)
-                remaining_count += 1
-        pipe_xs = remaining_xs
-        pipe_gaps = remaining_gaps
-        pipe_count = remaining_count
-
-        # Add a new pipe from the right every six ticks.
+        # Pipes are spaced far enough apart that only one is on screen at once.
         frames += 1
-        if frames % 6 == 0:
-            pipe_xs.append(4)
-            pipe_gaps.append(Math.random_range(1, 2))
-            pipe_count += 1
+        if pipe_x < 0 and frames % 6 == 0:
+            pipe_x = 4
+            gap_top = Math.random_range(1, 2)
 
         if not crashed:
-            draw_game(bird_row, pipe_xs, pipe_gaps, pipe_count)
+            draw_game(bird_row, pipe_x, gap_top)
             basic.pause(TICK_MS)
 
     # Show the final score, then accept a logo touch during the five-second
