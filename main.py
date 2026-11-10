@@ -3,8 +3,8 @@
 
 BIRD_X = 1
 TICK_MS = 220
-GRAVITY = 0.35
-JUMP_SPEED = -2.0
+GRAVITY = 0.18
+JUMP_SPEED = -1.2
 
 
 def draw_game(bird_y, pipe_x, gap_top):
@@ -41,12 +41,16 @@ def play_game():
             velocity = JUMP_SPEED
         previous_b = b_now
 
-        # Apply gravity and keep the bird within the 5x5 display.
+        # Apply gentler gravity and clamp the bird to the display edges.
         velocity += GRAVITY
         bird_y += velocity
+        if bird_y < 0:
+            bird_y = 0
+            velocity = 0
+        elif bird_y > 4:
+            bird_y = 4
+            velocity = 0
         bird_row = int(bird_y)
-        if bird_row < 0 or bird_row > 4:
-            crashed = True
 
         # Move the current pipe one LED to the left.
         if pipe_x >= 0:
